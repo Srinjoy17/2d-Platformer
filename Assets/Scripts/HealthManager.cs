@@ -29,7 +29,6 @@ public class HealthManager : MonoBehaviour
         currentLives--;
 
         UpdateHearts();
-
         if (currentLives <= 0)
         {
             GameManager.instance.GameOver();

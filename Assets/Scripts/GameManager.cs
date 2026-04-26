@@ -14,12 +14,6 @@ public class GameManager : MonoBehaviour
     private int gemCount = 0;
     private Vector3 playerPosition;
 
-    [Header("UI")]
-    [SerializeField] private GameObject gameOverPanel;
-    [SerializeField] private GameObject levelCompletePanel;
-
-    private bool isGameOver = false;
-
     private void Awake()
     {
         instance = this;
@@ -30,13 +24,6 @@ public class GameManager : MonoBehaviour
     {
         UpdateGUI();
         playerPosition = playerController.transform.position;
-
-        // ✅ IMPORTANT: Hide panels at start
-        if (gameOverPanel != null)
-            gameOverPanel.SetActive(false);
-
-        if (levelCompletePanel != null)
-            levelCompletePanel.SetActive(false);
     }
 
     // ✅ COINS
@@ -59,7 +46,7 @@ public class GameManager : MonoBehaviour
             coinText.text = coinCount.ToString();
     }
 
-    // ✅ RESPAWN
+    // ✅ RESPAWN (for lives system before final death)
     public void RespawnPlayer()
     {
         StartCoroutine(RespawnCoroutine());
@@ -75,41 +62,41 @@ public class GameManager : MonoBehaviour
         playerController.gameObject.SetActive(true);
     }
 
-    // ✅ GAME OVER (MAIN PART)
+    // ✅ GAME OVER → LOAD GAME OVER SCENE
     public void GameOver()
     {
-        Debug.Log("GAME OVER CALLED");
+        Debug.Log("GAME OVER");
 
-        isGameOver = true;
-
-        playerController.gameObject.SetActive(false);
-
-        if (gameOverPanel != null)
-        {
-            gameOverPanel.SetActive(true);
-            Debug.Log("GameOver Panel Activated");
-        }
-        else
-        {
-            Debug.LogError("GameOver Panel NOT assigned!");
-        }
+        StartCoroutine(LoadGameOverScene());
     }
 
-    // ✅ LEVEL COMPLETE
+    private IEnumerator LoadGameOverScene()
+    {
+        yield return new WaitForSeconds(1f);
+
+        // reset lives before going to next scene
+        if (HealthManager.instance != null)
+            HealthManager.instance.ResetLives();
+
+        SceneManager.LoadScene("GameOverScene");
+    }
+
+    // ✅ LEVEL COMPLETE → LOAD WIN SCENE
     public void LevelComplete()
     {
-        playerController.gameObject.SetActive(false);
-
-        if (levelCompletePanel != null)
-            levelCompletePanel.SetActive(true);
-
         Debug.Log("LEVEL COMPLETE");
+
+        StartCoroutine(LoadWinScene());
     }
 
-    // ✅ RESTART BUTTON
-    public void RestartGame()
+    private IEnumerator LoadWinScene()
     {
-        HealthManager.instance.ResetLives();
-        SceneManager.LoadScene(0);
+        yield return new WaitForSeconds(1f);
+
+        // reset lives
+        if (HealthManager.instance != null)
+            HealthManager.instance.ResetLives();
+
+        SceneManager.LoadScene("WinScene");
     }
 }
